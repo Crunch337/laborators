@@ -1,520 +1,449 @@
 #include <iostream>
+#include <string>
 #include <windows.h>
 
 using namespace std;
-
-int LEFT_BORDER_CHAR = '!';   // 33
-int LEFT_BORDER_SET = 'A';    // 65
-int RIGHT_BORDER_SET = 'Z';   // 90
-int RIGHT_BORDER_CHAR = '~';  // 126
-
-class Elem {
+class link {
 public:
-    Elem* pointer = nullptr;
-    char value;
+    int val;         // хранит код символа (ASCII)
+    link* next;
 };
 
-auto addElementInSet(Elem& _E, const char& _ch) {
-    Elem* _tracker = &_E;
-    while (_tracker != nullptr) {
-        Elem* next = _tracker->pointer;
-        // add element if it last or next will be > than it
-        if (next == nullptr || next->value > int(_ch)) {
-            Elem* EL = new Elem();
-            EL->value = _ch;
-            EL->pointer = next;
-            _tracker->pointer = EL;
-            break;
-        }
-        else {
-            _tracker = next;
-        }
-    }
+// Глобальный массив указателей на головы множеств (A-Z)
+link* sets[26] = {nullptr};
+
+// Найти множество по имени (вернуть указатель на голову или nullptr)
+link* findSet(char name) {
+    int idx = name - 'A';
+    if (idx < 0 || idx >= 26) return nullptr;
+    return sets[idx];
 }
 
-auto removeElementFromSet(Elem& _E, const char& _ch) {
-    Elem* _tracker = &_E;
-    Elem* next = _tracker->pointer;
-    while(next != nullptr) {
-        if (next->value > _ch) {
-            cout << "Символа \"" << _ch << "\" нет в массиве " << _E.value << endl;
-            break;
-        }
-        if (next->value == _ch) {
-            _tracker->pointer = next->pointer;
-            delete next;
-            break;
-        }
-        else if (next->pointer == nullptr) {
-            cout << "Символа \"" << _ch << "\" нет в массиве " << _E.value << endl;
-        }
-        _tracker = next;
-        next = _tracker->pointer;
-    }
-}
-
-auto showSet(Elem& _E) {
-    Elem* _tracker = &_E;
-    while (_tracker != nullptr) {
-        cout << _tracker->value << " ";
-        _tracker = _tracker->pointer;
-    }
-    cout << endl;
-}
-
-auto cleanMemory(Elem& _E) {
-    Elem* cleaner = &_E;
-    while (cleaner != nullptr) {
-        Elem* next = cleaner->pointer;
-        /*cout << "clean " << cleaner->value << endl;*/
-        delete cleaner;
-        cleaner = next;
-    }
-}
-
-auto checkEqual(Elem& _A, Elem& _B) {
-    Elem* tracker_A = &_A;
-    Elem* tracker_B = &_B;
-    if (tracker_A->pointer == nullptr && tracker_B->pointer == nullptr) {
-        return true;
-    }
-    if (tracker_A->pointer == nullptr || tracker_B->pointer == nullptr) {
+// Создать новое множество
+bool createSet(char name) {
+    int idx = name - 'A';
+    if (sets[idx] != nullptr) {
+        cout << "Множество " << name << " уже существует\n";
         return false;
     }
-    tracker_A = tracker_A->pointer;
-    tracker_B = tracker_B->pointer;
-    while (tracker_A->value == tracker_B->value) {
-        if (tracker_A->pointer == nullptr && tracker_B->pointer == nullptr) {
-            return true;
-        }
-        if (tracker_A->pointer == nullptr || tracker_B->pointer == nullptr) {
-            return false;
-        }
-        tracker_A = tracker_A->pointer;
-        tracker_B = tracker_B->pointer;
-    }
-    return false;
-}
-
-auto setSum(Elem& _A, Elem& _B) {
-    Elem* tracker_A = (&_A)->pointer;
-    Elem* tracker_B = (&_B)->pointer;
-    while(tracker_A != nullptr && tracker_B != nullptr) {
-        if (tracker_A->value < tracker_B->value) {
-            cout << tracker_A->value << " ";
-            tracker_A = tracker_A->pointer;
-        }
-        else if (tracker_A->value > tracker_B->value) {
-            cout << tracker_B->value << " ";
-            tracker_B = tracker_B->pointer;
-        }
-        else {
-            cout << tracker_A->value << " ";
-            tracker_A = tracker_A->pointer;
-            tracker_B = tracker_B->pointer;
-        }
-    }
-    while (tracker_A != nullptr) {
-        cout << tracker_A->value << " ";
-        tracker_A = tracker_A->pointer;
-    }
-    while (tracker_B != nullptr) {
-        cout << tracker_B->value << " ";
-        tracker_B = tracker_B->pointer;
-    }
-    cout << endl;
-}
-
-auto setMultiplication(Elem& _A, Elem& _B) {
-    Elem* tracker_A = (&_A)->pointer;
-    Elem* tracker_B = (&_B)->pointer;
-    while(tracker_A != nullptr && tracker_B != nullptr) {
-        if (tracker_A->value == tracker_B->value) {
-            cout << tracker_A->value << " ";
-            tracker_A = tracker_A->pointer;
-            tracker_B = tracker_B->pointer;
-        }
-        else if (tracker_A->value < tracker_B->value) {
-            tracker_A = tracker_A->pointer;
-        }
-        else {
-            tracker_B = tracker_B->pointer;
-        }
-    }
-    cout << endl;
-}
-
-auto potencial(Elem& _A, Elem& _B) {
-    Elem* tracker_A = (&_A)->pointer;
-    Elem* tracker_B = (&_B)->pointer;
-    while (tracker_A != nullptr) {
-        if (tracker_B != nullptr) {
-            if (tracker_A->value > tracker_B->value) {
-                tracker_B = tracker_B->pointer;
-                continue;
-            }
-            else if (tracker_A->value == tracker_B->value) {
-                tracker_A = tracker_A->pointer;
-                continue;
-            }
-            else if (tracker_A->value < tracker_B->value) {
-                cout << tracker_A->value << " ";
-                tracker_A = tracker_A->pointer;
-            }
-        }
-        else {
-            cout << tracker_A->value << " ";
-            tracker_A = tracker_A->pointer;
-        }
-    }
-    cout << endl;
-}
-
-auto checkSubset(Elem& _A, Elem& _B) {
-    Elem* tracker_A = (&_A)->pointer;
-    Elem* tracker_B = (&_B)->pointer;
-    if (tracker_B == nullptr) {
-        if (tracker_A == nullptr) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }
-    while (tracker_A != nullptr) {
-        if (tracker_B == nullptr) {
-            return false;
-        }
-        if (tracker_A->value == tracker_B->value) {
-            tracker_A = tracker_A->pointer;
-            continue;
-        }
-        if (tracker_A->value > tracker_B->value) {
-            tracker_B = tracker_B->pointer;
-            continue;
-        }
-        if (tracker_A->value < tracker_B->value) {
-            return false;
-        }
-    }
+    link* head = new link;
+    head->val = (int)name;
+    head->next = nullptr;
+    sets[idx] = head;
     return true;
 }
 
-auto calcSetLen(Elem& _EL) {
-    Elem* tracker = _EL.pointer;
-    size_t setlen = 0;
-    while (tracker != nullptr) {
-        setlen += 1;
-        tracker = tracker->pointer;
+// Удалить множество и освободить память
+void deleteSet(char name) {
+    int idx = name - 'A';
+    link* head = sets[idx];
+    if (head == nullptr) {
+        cout << "Множество " << name << " не существует\n";
+        return;
     }
-    return setlen;
+    link* cur = head;
+    while (cur) {
+        link* tmp = cur;
+        cur = cur->next;
+        delete tmp;
+    }
+    sets[idx] = nullptr;
 }
 
-auto powww(int _f, int _s) {
-    int i = 1;
-    int res = _f;
-    while (i != _s) {
-        res *= _f;
-        i++;
+// Добавить элемент с сохранением порядка
+void addElement(char name, char ch) {
+    link* head = findSet(name);
+    if (!head) {
+        cout << "Множество " << name << " не существует\n";
+        return;
     }
-    return res;
+    // Проверка допустимости символа (печатный и не заглавная буква)
+    if (!(ch >= '!' && ch <= '~') || (ch >= 'A' && ch <= 'Z')) {
+        cout << "Недопустимый символ\n";
+        return;
+    }
+    int code = (int)ch;
+    link* prev = head;
+    link* cur = head->next;
+    while (cur && cur->val < code) {
+        prev = cur;
+        cur = cur->next;
+    }
+    if (cur && cur->val == code) {
+        cout << "Элемент '" << ch << "' уже есть в множестве\n";
+        return;
+    }
+    link* newNode = new link;
+    newNode->val = code;
+    newNode->next = cur;
+    prev->next = newNode;
 }
 
-auto toBinary(int _P, size_t setlen) {
-    int* arr = new int[setlen]();
-    int num = _P;
-    int i = 0;
-    while(num != 0) {
-        arr[i] = num % 2;
-        if (arr[i] == 1) {
-            num -= 1;
-            num /= 2;
+// Удалить элемент
+void removeElement(char name, char ch) {
+    link* head = findSet(name);
+    if (!head) {
+        cout << "Множество " << name << " не существует\n";
+        return;
+    }
+    int code = (int)ch;
+    link* prev = head;
+    link* cur = head->next;
+    while (cur && cur->val < code) {
+        prev = cur;
+        cur = cur->next;
+    }
+    if (cur && cur->val == code) {
+        prev->next = cur->next;
+        delete cur;
+    } else {
+        cout << "Элемент '" << ch << "' не найден\n";
+    }
+}
+
+// Вывести множество
+void printSet(char name) {
+    link* head = findSet(name);
+    if (!head) {
+        cout << "Множество " << name << " не существует\n";
+        return;
+    }
+    link* cur = head;
+    while (cur) {
+        cout << (char)cur->val;
+        if (cur->next) cout << ' ';
+        cur = cur->next;
+    }
+    cout << endl;
+}
+
+// Вывести все множества
+void printAllSets() {
+    bool any = false;
+    for (int i = 0; i < 26; ++i) {
+        if (sets[i]) {
+            printSet('A' + i);
+            any = true;
         }
-        else if (arr[i] == 0) {
-            num /= 2;
-        }
-        i++;
     }
-    i = 0;
-    while (i < setlen / 2) {
-        int swap = arr[i];
-        arr[i] = arr[setlen - 1 - i];
-        arr[setlen - 1 - i] = swap;
-        i++;
-    }
-    return arr;
+    if (!any) cout << "Нет созданных множеств\n";
 }
 
-auto showBoolean(Elem& _EL) {
-    Elem* tracker = _EL.pointer;
-    size_t setlen = calcSetLen(_EL);
-    int currentDuration = 0;
-    int maxNum_andOne = powww(2, int(setlen));
-    while (currentDuration != maxNum_andOne) {
-        int* binaryNum = toBinary(currentDuration, setlen);
-        size_t i = 0;
-        while (i < setlen) {
-            if (binaryNum[i] == 1) {
-                cout << tracker->value << " ";
-                tracker = tracker->pointer;
+// Булеан 
+void printPowerSet(char name) {
+    link* head = findSet(name);
+    if (!head) {
+        cout << "Множество " << name << " не существует\n";
+        return;
+    }
+
+    int n = 0;
+    link* cur = head->next;
+    while (cur) {
+        ++n;
+        cur = cur->next;
+    }
+    if (n == 0) {
+        cout << "∅\n";
+        return;
+    }
+    char* elems = new char[n];
+    cur = head->next;
+    for (int i = 0; i < n; ++i) {
+        elems[i] = (char)cur->val;
+        cur = cur->next;
+    }
+
+    unsigned long long total = 1ULL << n;
+    for (unsigned long long mask = 0; mask < total; ++mask) {
+        bool first = true;
+        for (int i = 0; i < n; ++i) {
+            if (mask & (1ULL << i)) {
+                if (!first) cout << ' ';
+                cout << elems[i];
+                first = false;
             }
-            else if (binaryNum[i] == 0) {
-                tracker = tracker->pointer;
-            }
-            i++;
         }
-        delete[] binaryNum;
+        if (first) cout << "∅";
         cout << endl;
-        tracker = _EL.pointer;
-        currentDuration++;
     }
+    delete[] elems;
 }
 
-auto takeUserSet() {
-    cout << "Введите название множества (A-Z): ";
-    char userSet;
-    cin >> userSet;
-    cin.clear();
-    if (int(userSet) < LEFT_BORDER_SET || int(userSet) > RIGHT_BORDER_SET) {
-        cout << "Недопустимое имя множества" << endl;
-        return char(0);
+// Объединение
+void unionSets(char a, char b) {
+    link* headA = findSet(a);
+    link* headB = findSet(b);
+    if (!headA || !headB) {
+        cout << "Одно из множеств не существует\n";
+        return;
     }
-    return userSet;
-}
-
-auto takeUserChar() {
-    cout << "Введите значение: ";
-    char userChar;
-    cin >> userChar;
-    cin.clear();
-    if (LEFT_BORDER_CHAR <= (int)userChar && (int)userChar <= RIGHT_BORDER_CHAR) {
-        if (userChar < LEFT_BORDER_SET || RIGHT_BORDER_SET < userChar) {
-            return userChar;
+    link* p = headA->next;
+    link* q = headB->next;
+    while (p && q) {
+        if (p->val < q->val) {
+            cout << (char)p->val << ' ';
+            p = p->next;
+        } else if (p->val > q->val) {
+            cout << (char)q->val << ' ';
+            q = q->next;
+        } else {
+            cout << (char)p->val << ' ';
+            p = p->next;
+            q = q->next;
         }
     }
-    cout << "Недопустимый символ" << endl;
-    return char(' ');
+    while (p) { cout << (char)p->val << ' '; p = p->next; }
+    while (q) { cout << (char)q->val << ' '; q = q->next; }
+    cout << endl;
 }
 
-auto cleans(char& _1, int& _2) {
-    delete &_1;
-    delete &_2;
+// Пересечение
+void intersectSets(char a, char b) {
+    link* headA = findSet(a);
+    link* headB = findSet(b);
+    if (!headA || !headB) {
+        cout << "Одно из множеств не существует\n";
+        return;
+    }
+    link* p = headA->next;
+    link* q = headB->next;
+    while (p && q) {
+        if (p->val < q->val) p = p->next;
+        else if (p->val > q->val) q = q->next;
+        else {
+            cout << (char)p->val << ' ';
+            p = p->next;
+            q = q->next;
+        }
+    }
+    cout << endl;
+}
+// Разность A \ B
+void diffSets(char a, char b) {
+    link* headA = findSet(a);
+    link* headB = findSet(b);
+    if (!headA || !headB) {
+        cout << "Одно из множеств не существует\n";
+        return;
+    }
+    link* p = headA->next;
+    link* q = headB->next;
+    while (p) {
+        if (!q || p->val < q->val) {
+            cout << (char)p->val << ' ';
+            p = p->next;
+        } else if (p->val > q->val) {
+            q = q->next;
+        } else {
+            p = p->next;
+            q = q->next;
+        }
+    }
+    cout << endl;
 }
 
+// Проверка подмножества
+bool isSubset(char a, char b) {
+    link* headA = findSet(a);
+    link* headB = findSet(b);
+    if (!headA || !headB) {
+        cout << "Одно из множеств не существует\n";
+        return false;
+    }
+    link* p = headA->next;
+    link* q = headB->next;
+    while (p) {
+        while (q && q->val < p->val) 
+            q = q->next;
+        if (!q || q->val != p->val) 
+            return false;
+        p = p->next;
+    }
+    return true;
+}
+// Проверка равенства
+bool areEqual(char a, char b) {
+    link* headA = findSet(a);
+    link* headB = findSet(b);
+    if (!headA || !headB) {
+        cout << "Одно из множеств не существует\n";
+        return false;
+    }
+    link* p = headA->next;
+    link* q = headB->next;
+    while (p && q) {
+        if (p->val != q->val) return false;
+        p = p->next;
+        q = q->next;
+    }
+    return p == nullptr && q == nullptr;
+}
+
+void execute(const string& cmdLine) {
+    if (cmdLine.empty()) return;
+
+    size_t pos = 0;
+    string cmd;
+    while (pos < cmdLine.size() && cmdLine[pos] != ' ') {
+        cmd += cmdLine[pos];
+        ++pos;
+    }
+    while (pos < cmdLine.size() && cmdLine[pos] == ' ') ++pos;
+
+    if (cmd == "new") {
+        if (pos >= cmdLine.size()) {
+            cout << "Ошибка: не указано имя множества\n";
+            return;
+        }
+        char name = cmdLine[pos];
+        if (name >= 'A' && name <= 'Z')
+            createSet(name);
+        else
+            cout << "Неверное имя (A-Z)\n";
+    }
+    else if (cmd == "del") {
+        if (pos >= cmdLine.size()) {
+            cout << "Ошибка: не указано имя множества\n";
+            return;
+        }
+        char name = cmdLine[pos];
+        if (name >= 'A' && name <= 'Z')
+            deleteSet(name);
+        else
+            cout << "Неверное имя (A-Z)\n";
+    }
+    else if (cmd == "add") {
+        if (pos + 2 >= cmdLine.size()) {
+            cout << "Ошибка: нужно указать имя и элемент\n";
+            return;
+        }
+        char name = cmdLine[pos];
+        char elem = cmdLine[pos+2];
+        if (!(name >= 'A' && name <= 'Z')) {
+            cout << "Неверное имя (A-Z)\n";
+            return;
+        }
+        if (!(elem >= '!' && elem <= '~') || (elem >= 'A' && elem <= 'Z')) {
+            cout << "Недопустимый символ\n";
+            return;
+        }
+        addElement(name, elem);
+    }
+    else if (cmd == "rem") {
+        if (pos + 2 >= cmdLine.size()) {
+            cout << "Ошибка: нужно указать имя и элемент\n";
+            return;
+        }
+        char name = cmdLine[pos];
+        char elem = cmdLine[pos+2];
+        if (!(name >= 'A' && name <= 'Z')) {
+            cout << "Неверное имя (A-Z)\n";
+            return;
+        }
+        if (!(elem >= '!' && elem <= '~') || (elem >= 'A' && elem <= 'Z')) {
+            cout << "Недопустимый символ\n";
+            return;
+        }
+        removeElement(name, elem);
+    }
+    else if (cmd == "pow") {
+        if (pos >= cmdLine.size()) {
+            cout << "Ошибка: не указано имя множества\n";
+            return;
+        }
+        char name = cmdLine[pos];
+        if (name >= 'A' && name <= 'Z')
+            printPowerSet(name);
+        else
+            cout << "Неверное имя (A-Z)\n";
+    }
+    else if (cmd == "see") {
+        if (pos < cmdLine.size()) {
+            char name = cmdLine[pos];
+            if (name >= 'A' && name <= 'Z')
+                printSet(name);
+            else
+                cout << "Неверное имя (A-Z)\n";
+        } else {
+            printAllSets();
+        }
+    }
+    else if (cmd.size() == 1 && (cmd[0] >= 'A' && cmd[0] <= 'Z')) {
+        char left = cmd[0];
+        if (pos >= cmdLine.size()) {
+            cout << "Ошибка: не указана операция\n";
+            return;
+        }
+        string op;
+        while (pos < cmdLine.size() && cmdLine[pos] != ' ') {
+            op += cmdLine[pos];
+            ++pos;
+        }
+        while (pos < cmdLine.size() && cmdLine[pos] == ' ') ++pos;
+        if (pos >= cmdLine.size()) {
+            cout << "Ошибка: не указано второе множество\n";
+            return;
+        }
+        char right = cmdLine[pos];
+        if (!(right >= 'A' && right <= 'Z')) {
+            cout << "Неверное имя второго множества\n";
+            return;
+        }
+        if (op == "+") {
+            cout << left << " + " << right << " = ";
+            unionSets(left, right);
+        } else if (op == "&") {
+            cout << left << " & " << right << " = ";
+            intersectSets(left, right);
+        } else if (op == "-") {
+            cout << left << " - " << right << " = ";
+            diffSets(left, right);
+        } else if (op == "<") {
+            if (isSubset(left, right))
+                cout << left << " является подмножеством " << right << endl;
+            else
+                cout << left << " не является подмножеством " << right << endl;
+        } else if (op == "=") {
+            if (areEqual(left, right))
+                cout << left << " и " << right << " равны" << endl;
+            else
+                cout << left << " и " << right << " не равны" << endl;
+        } else {
+            cout << "Неизвестная операция: " << op << endl;
+        }
+    }
+    else if (cmd == "help") {
+        cout << "Команды:\n"
+             << "  new A\n"
+             << "  del A\n"
+             << "  add A x\n"
+             << "  rem A x\n"
+             << "  pow A\n"
+             << "  see A\n"
+             << "  A + B\n"
+             << "  A & B\n"
+             << "  A - B\n"
+             << "  A < B\n"
+             << "  A = B\n"
+             << "  exit\n";
+    }
+    else if (cmd == "exit") {
+        exit(0);
+    }
+    else {
+        cout << "Неизвестная команда. Введите help для списка.\n";
+    }
+}
 int main() {
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
-
-    Elem* setList[26] = {nullptr};
-
-    bool session_flag = true;
-    while (session_flag) {
-        cout << "1. Cоздать множество" << "\n"
-             << "2. Удалить множество" << "\n"
-             << "3. Добавить элемент в множество" << "\n"
-             << "4. Удалить элемент из множества" << "\n"
-             << "5. Вывести булеан множества" << "\n"
-             << "6. Показать множество" << "\n"
-             << "67. Показать все множества" << "\n"
-             << "7. Сумма двух множеств" << "\n"
-             << "8. Пересечение двух множеств" << "\n"
-             << "9. Разность двух множеств" << "\n"
-             << "10. Проверить, является ли первое множество подмножеством второго" << "\n"
-             << "11. Проверить, равны ли множества" << "\n"
-             << "0. Выход" << "\n"
-             << "Ваш выбор: " << endl;
-        int userCommand;
-        cin >> userCommand;
-        cin.clear();
-        if (userCommand == 0) {
-            session_flag = false;
-            continue;
-        }
-        char userSet;
-        if (userCommand != 67) {
-            userSet = takeUserSet();
-            if (userSet == char(0)) {
-                    continue;;
-            }
-        }
-        char* userSet2 = new char;
-        int* setpos2 = new int;
-        if (7 <= userCommand && userCommand <= 11) {
-            *userSet2 = takeUserSet();
-            *setpos2 = int(*userSet2) - LEFT_BORDER_SET;
-        }
-        else {
-            delete userSet2;
-            delete setpos2;
-        }
-        int setpos = int(userSet) - LEFT_BORDER_SET;
-        switch (userCommand) {
-            case 1: {
-                if (setList[setpos] != nullptr) {
-                    cout << "Такое множество уже существует" << endl;
-                    break;
-                }
-                Elem* newSet = new Elem();
-                newSet->value = userSet;
-                setList[setpos] = newSet;
-                break;
-            }
-            case 2: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    break;
-                }
-                cleanMemory(*setList[setpos]);
-                setList[setpos] = nullptr;
-                break;
-            }
-            case 3: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    break;
-                }
-                char userElement = takeUserChar();
-                if (userElement == ' ') {
-                    break;
-                }
-                addElementInSet(*setList[setpos], userElement);
-                break;
-            }
-            case 4: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    break;
-                }
-                char userElement = takeUserChar();
-                if (userElement == ' ') {
-                    break;
-                }
-                removeElementFromSet(*setList[setpos], userElement);
-                break;
-            }
-            case 5: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    break;
-                }
-                showBoolean(*setList[setpos]);
-                break;
-            }
-            case 6: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    break;
-                }
-                showSet(*setList[setpos]);
-                break;
-            }
-            case 67: {
-                for (size_t i = 0; i < 26; i++) {
-                    if (setList[i] != nullptr) {
-                        showSet(*setList[i]);
-                    }
-                }
-                break;
-            }
-            case 7: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (setList[*setpos2] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                cout << userSet << " + " << *userSet2 << " = ";
-                setSum(*setList[setpos], *setList[*setpos2]);
-                cleans(*userSet2, *setpos2);
-                break;
-            }
-            case 8: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (setList[*setpos2] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                cout << userSet << " & " << *userSet2 << " = ";
-                setMultiplication(*setList[setpos], *setList[*setpos2]);
-                cleans(*userSet2, *setpos2);
-                break;
-            }
-            case 9: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (setList[*setpos2] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                cout << userSet << " - " << *userSet2 << " = ";
-                potencial(*setList[setpos], *setList[*setpos2]);
-                cleans(*userSet2, *setpos2);
-                break;
-            }
-            case 10: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (setList[*setpos2] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (checkSubset(*setList[setpos], *setList[*setpos2])) {
-                    cout << "Множество " << userSet << " является подмножеством " << *userSet2 << endl;
-                }
-                else {
-                    cout << "Множество " << userSet << " НЕ является подмножеством " << *userSet2 << endl;
-                }
-                cleans(*userSet2, *setpos2);
-                break;
-            }
-            case 11: {
-                if (setList[setpos] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (setList[*setpos2] == nullptr) {
-                    cout << "Такого множества не существует" << endl;
-                    cleans(*userSet2, *setpos2);
-                    break;
-                }
-                if (checkEqual(*setList[setpos], *setList[*setpos2])) {
-                    cout << "Множества " << userSet << " и " << *userSet2 << " РАВНЫ" << endl;
-                }
-                else {
-                    cout << "Множества " << userSet << " и " << *userSet2 << " НЕ РАВНЫ" << endl;
-                }
-                cleans(*userSet2, *setpos2);
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-    }
-    
-    for (size_t i = 0; i < 26; i++) {
-        if (setList[i] != nullptr) {
-            cleanMemory(*setList[i]);
-            cout << "Атоматическое освобождение памяти для множества: " << char(LEFT_BORDER_SET + i) << endl;
-        }
+    cout << "Введите команду (help для справки):\n";
+    string line;
+    while (true) {
+        cout << "> ";
+        getline(cin, line);
+        execute(line);
     }
     return 0;
 }
