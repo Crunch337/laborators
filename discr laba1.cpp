@@ -432,7 +432,7 @@ void execute(const string& cmdLine) {
         exit(0);
     }
     else {
-        cout << "Неизвестная команда. Введите help для списка.\n";
+        cout << "Неизвестная команда.Введите help для списка.\n";
     }
 }
 int main() {
